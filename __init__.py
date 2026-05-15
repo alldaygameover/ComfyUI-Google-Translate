@@ -3,7 +3,6 @@ import os
 import sys
 
 current_dir = os.path.dirname(__file__)
-sys.path.insert(0, current_dir)
 
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
@@ -18,9 +17,13 @@ def load_modules_from_directory(directory):
 
             file_path = os.path.join(directory, file)
             try:
-                spec = importlib.util.spec_from_file_location(module_name, file_path)
+                spec = importlib.util.spec_from_file_location(
+                    f"ComfyUI_Google_Translate.{module_name}", file_path
+                )
+                if spec is None or spec.loader is None:
+                    raise RuntimeError(f"Unable to create import spec for {file_path}")
                 module = importlib.util.module_from_spec(spec)
-                sys.modules[module_name] = module
+                sys.modules[spec.name] = module
                 spec.loader.exec_module(module)
 
                 if hasattr(module, "NODE_CLASS_MAPPINGS"):
